@@ -1,0 +1,68 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */options{
+	STATIC=false;
+}
+PARSER_BEGIN(Calculator)
+package sqlParseLearn02;
+import java.io.PrintStream;
+public class Calculator{
+	public static void main(String[] args) throws ParseException,TokenMgrError,NumberFormatException{
+		Calculator parser = new Calculator(System.in);
+		parser.Start(System.out);
+	}
+	double previousValue = 0.0;
+}
+
+PARSER_END(Calculator)
+
+SKIP : {" "}
+TOKEN : {<ADD : "+">
+		|<MINUS:"-">
+		|<MULTIPLE:"*">
+		|<DIVIDE:"/">
+		|<EOL: "\n" | "\r" >}
+
+TOKEN : {<NUMBER : <DIGITS>
+				| <DIGITS> "." <DIGITS>
+				| <DIGITS> "."
+				| "." <DIGITS>
+				>} // 能够匹配整型 (无小数点，小数点在中间，小数点在后面，小数点在前面)
+				
+TOKEN : {<#DIGITS : (["0"-"9"])+>}
+//有时候同样的规则可能会出现多次，为了更好的可读性，将这些重复出现的表达式起一个名字。
+//这些只是在词法描述文件中使用，但不是token的规则表达式，创建特殊的标识标识#
+
+void Start(PrintStream printStream) throws NumberFormatException:
+{}
+{
+	(
+		previousValue = Expression()
+		<EOL> {printStream.println(previousValue);}
+	)*
+	<EOF>
+}
+
+double Expression() throws NumberFormatException:
+{
+	double i;
+	double value;
+}
+{
+	value = Primary()
+	(
+		<ADD>
+		i = Primary()
+		{value += i;}
+	)*
+	{return value;}
+}
+
+double Primary() throws NumberFormatException:
+{
+	Token t;
+}
+{
+	t = <NUMBER>
+	{return Double.parseDouble(t.image);}
+}

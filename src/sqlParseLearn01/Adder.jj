@@ -1,0 +1,66 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */options{
+    STATIC = false;
+}
+
+PARSER_BEGIN(Adder)
+package sqlParseLearn01;
+public class Adder{
+		public static void main(String[] args) throws ParseException,TokenMgrError{
+			Adder parser = new Adder(System.in);
+			int j = 0;
+			try { 
+				int val = parser.Start();
+				System.out.println(val);
+				j = 1;
+		}
+		catch (Exception e) {
+			System.out.println(e);
+		}
+		if(0==j)
+	 {
+		System.out.println("fail!");
+ 	 }
+ 	 else
+ 	 {
+		System.out.println("success!");	
+ 	 }
+	}
+}
+PARSER_END(Adder)
+
+SKIP:{ " "
+	|"\n"
+	|"\r"
+	|"\t"}
+
+TOKEN:{ <PLUS:"+"> }
+TOKEN: { <NUMBER : (["0" - "9"])+>
+| < EOL :";">}
+		
+//Óï·¨·ÖÎöÆ÷
+int Start() throws NumberFormatException:
+{
+	int i;
+	int value;
+}
+{
+	value = Primary()
+	(
+	  <PLUS>
+	 i = Primary()
+	 {value += i;}
+	)*
+	<EOL>
+	{return value; }
+}
+
+int Primary() throws NumberFormatException:
+{
+	Token t;
+}
+{
+	t = < NUMBER>
+	{ return Integer.parseInt(t.image);}
+}

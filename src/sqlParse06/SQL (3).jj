@@ -1,0 +1,436 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  static = false;  //是否为静态调用
+}
+
+PARSER_BEGIN(SQL)    //用于标记主程序段，注意SQL与文件名一致
+					 //主程序段中的代码采用java格式，会原封不动的拷贝至SQL.java中
+package sqlParse06;
+import java.util.Vector;
+import staticContent.*;
+import dataBase.*;
+public class SQL
+{
+  public static void main(String args []) throws ParseException	//函数入口
+  {
+	SQL parser = new SQL(System.in);		//从控制台输入字符串
+    int j=0;
+    ColumnDef coldef = new ColumnDef();
+//	TableConstraint tc = new TableConstraint();
+	TableContent tc = new TableContent();
+    try
+    {
+//      coldef  = parser.getColDef();
+//	System.out.println(coldef.getDescribe());
+      
+//     tc = parser.GetTableConstraint();
+		
+
+//		tc = parser.GetTableContent();
+		tc.ReadFromFile("students");
+//    	tc.printDescribe();
+//    	tc.WriteToFile();
+
+    	j=1;
+    }
+    catch (Exception e)
+      {
+        System.out.println(e.getMessage());
+      }
+    System.exit(0);
+  }
+}
+
+PARSER_END(SQL) //主程序段结束
+
+SKIP :			//需要跳过的字符，这里主要是跳过空格与换行符等
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN : /* OPERATORS */
+{
+  < ADD : "+" >
+| < MINUS : "-" >
+| < MULTIPLY : "*" >
+| < DIVIDE : "/" >
+| < MOD : "%" >
+| < GREAT : ">" >
+| < LESS : "<" >
+| < EQUAL : "==" >
+| < AND : "and" >
+| < OR : "or" >
+| < NOT : "not" >
+}
+
+TOKEN: //数据类型
+{
+  < INT : "int">
+| < FLOAT: "float" >
+| < STRING : "string">
+| < BOOL : "bool">
+}
+
+TOKEN:
+{
+  < CREATE: "create">
+| < TABLE: "table">
+| < INSERT: "insert">
+| < INTO:"into">
+| < VALUES:"values">
+| < UPDATE: "update">
+| < SET:"set">
+| < SELECT:"select">
+| < FROM:"from">
+| < WHERE: "where">
+}
+
+TOKEN: //标识符
+{
+	< UNIQUE :"unique">
+| < NOTNULL : "not null">
+| < CONSTRAINT: "constraint">
+| < PRIMARYKEY : "primary key">
+// primary key (sage,sno)
+// foreign key (sno) references 被引用表表名[标识符](被引用表字段名[标识符]) on delete (setnull | noaction | cascade)
+// check
+// create table  标识符 (字段定义或者是约束定义)
+| < SQLDEFAULT : "default">
+| < FOREIGNKEY: "foreign key">
+| < REFERENCES: "references">
+| < ON : "on">
+| < DELETE : "delete">
+| < UPDATE: "update">
+| < CHECK: "check">
+}
+
+TOKEN:
+{
+	< SETNULL: "set null">
+| < NOACTION: "no action">
+| < RESTRICT: "restrict">
+| < CASCADE: "cascade">
+}
+
+
+TOKEN : 
+{
+   < ICONSTANT : (< DIGIT >)+ >						 //整数
+| < FCONSTANT : (< DIGIT >)+ "." (< DIGIT >)* >		 //小数
+| < 	IDENTIFIER :
+    < LETTER >
+    (
+      < LETTER >
+    | < DIGIT >
+    )* >
+| < SCONSTANT : "'" ([ "a"-"z", "\\", "%", "_" ])* "'" >	 //字符串
+| < #LETTER : [ "a"-"z", "A"-"Z", "_" ] >
+| < #DIGIT : [ "0"-"9" ] >
+| < EOL :";" >
+}
+
+
+
+String GetNumericOperator() : //数学运算符
+{
+  Token t;
+}
+{
+  (
+    t = < ADD >
+  | t = < MINUS >
+  | t = < MULTIPLY >
+  | t = < DIVIDE >
+  | t = < MOD >
+  )
+  {
+    return t.image;
+  }
+}
+
+String GetLogicOperator() : //逻辑运算符
+{
+  Token t;
+}
+{
+  (
+    t = < GREAT >
+  | t = < LESS >
+  | t = < EQUAL >
+  | t = < AND >
+  | t = < OR >
+  )
+  {
+    return t.image;
+  }
+}
+
+void GetOperand(Expression exp) :
+{
+  Token t;
+  Operand od = new Operand();
+  Operand odm = new Operand();
+  Variable var;
+  Function f;
+}
+{
+ 
+    [
+      < MINUS >
+      {
+        odm.SetINT(-1);
+        exp.addElement(odm);
+        exp.addElement(Operator.get("*"));
+      }
+    ]
+    (
+	      
+	    t = < ICONSTANT >
+	    {
+	      
+	      od.SetINT(Integer.parseInt(t.image));
+	      exp.addElement(od);
+	    }
+	  
+		|
+	  
+	    t = < FCONSTANT >
+	    {
+	      od.SetFLOAT( Float.parseFloat(t.image));
+	      exp.addElement(od);
+	    }
+	  
+		|
+	  
+	    t = < SCONSTANT >
+	    {
+	      od.SetSTRING(t.image);
+	      exp.addElement(od);
+	    }
+	    |LOOKAHEAD(2) f = GetFunction()  //识别函数
+    	{
+      		exp.addElement(f);
+    	}
+	  	|
+	    t = < IDENTIFIER >  //识别变量
+	    {
+	      var=new Variable(t.image);
+	      exp.addElement(var);
+	    }
+	)
+	
+	|
+	(
+	  	"(" {      exp.addElement(Operator.get("("));    }
+			subexpression(exp)
+		")"  {     exp.addElement(Operator.get(")"));    }
+	)
+	
+}
+
+void OpPart(Expression  exp) :
+{
+  String opstr;
+}
+{
+  (
+    opstr = GetNumericOperator()
+    {
+      exp.addElement(Operator.get(opstr));
+    }
+  | opstr = GetLogicOperator()
+    {
+      exp.addElement(Operator.get(opstr));
+    }
+  )
+  GetOperand(exp)
+}
+
+void subexpression(Expression exp) :
+{
+  
+}
+{
+  GetOperand(exp)
+  (
+    LOOKAHEAD(2)
+    OpPart(exp)
+  )* 
+}
+
+void expression(Expression exp):
+{
+}
+{
+  GetOperand(exp)
+  (
+    LOOKAHEAD(2)
+    OpPart(exp)
+  )* < EOL >
+}
+
+Expression ParsePartExpression() :
+{
+  Expression exp = new Expression();
+}
+{
+  subexpression(exp)
+  {
+    return exp;
+  }
+}
+
+Function GetFunction() :
+{
+  Function f;
+  Token t;
+  Expression exp;
+}
+{
+
+  t = < IDENTIFIER >
+  {
+    f = Function.get(t.image);
+    f.SetName(t.image);
+  }
+  "(" 
+  exp = ParsePartExpression()
+  {
+    f.AddParam(exp);
+  }
+  (
+    "," exp = ParsePartExpression()
+    {
+      f.AddParam(exp);
+    }
+  )*
+  ")"
+  {
+    return f;
+  }
+}
+
+ColumnDef getColDef():
+{
+	ColumnDef coldef = new ColumnDef();
+	Token t;
+	int i;
+//	Expression exp = new Expression();
+ }
+{
+	t = < IDENTIFIER > { coldef.setColName(t.image);}
+	i = GetDataType() { coldef.setColType(i);}
+	(
+		[< UNIQUE> { coldef.setUnique(true);} ]
+		[< NOTNULL> { coldef.setNotNull(true);}]
+		[< PRIMARYKEY> { coldef.setPrimaryKey(true);}]		
+		//[< SQLDEFAULT> exp = ParsePartExpression() { coldef.setDefaultExp(exp);}]
+	)
+	{
+	  return coldef;
+	}
+}
+int GetDataType():
+{
+  int i;
+  }
+{
+  (
+	  < INT > { i = DataType.INT;}
+	| < FLOAT> { i = DataType.FLOAT;}
+	| < STRING >{ i = DataType.STRING;}
+	| < BOOL >{ i = DataType.BOOL;}
+)
+  {
+	return i;
+  }
+ }
+
+ 
+TableConstraint GetTableConstraint():
+{
+  Token t;
+  Expression exp = new Expression();
+  TableConstraint tc = new TableConstraint();
+ }
+{
+  
+  ( // constrant ss .....
+    [< CONSTRAINT > t = < IDENTIFIER> { tc.setTcName(t.image);} ] // 设置约束名字
+    (
+      (//  check sage>18 
+        < CHECK > exp = ParsePartExpression()
+        {
+          tc.setTcType(3);
+          tc.addElement(exp);
+        }    )
+    |
+	    (//primary key (sno,cno)
+	      < PRIMARYKEY >
+	      "(" t= < IDENTIFIER>
+	      {
+	        tc.setTcType(1);
+	        tc.addElement(t.image);
+	        }
+	        (
+	          "," t = < IDENTIFIER > { tc.addElement(t.image);}	      	)*
+	        ")" 	  )
+	  |
+	  (// foreign key (sno) references students (sno) on delete cascade on update noaction 
+			< FOREIGNKEY > { tc.setTcType(2);}
+			"(" t = < IDENTIFIER > ")" { tc.addElement(t.image); }
+			< REFERENCES> t = < IDENTIFIER >{ tc.addElement(t.image); }
+			"(" t = < IDENTIFIER> ")" { tc.addElement(t.image);}
+			[
+				LOOKAHEAD(2) < ON >< DELETE >
+				(
+				  < NOACTION>|< RESTRICT >|< SETNULL> { tc.setElement(3,2);} |< CASCADE> { tc.setElement(3,3);}				)
+			]
+			[
+				< ON >< UPDATE >
+				(
+				  < NOACTION>|< RESTRICT >|< SETNULL> {tc.setElement(4,2); }|< CASCADE> { tc.setElement(4,3);}				)
+			]
+	  )    )  )
+  {
+    return tc;
+  }
+ }
+
+TableContent GetTableContent()://创建表语句
+{
+  //create table tname (sno int , sage int)
+   ColumnDef coldef;
+   TableConstraint tc;
+   Token t;
+   TableContent tContent = new TableContent();
+}
+{
+	< CREATE> < TABLE > t = < IDENTIFIER > { tContent.setName(t.image);} //获取表名
+   "("
+		coldef = getColDef() { tContent.getvColumn().addElement(coldef);} //字段名
+		(
+		  ","
+		  (coldef = getColDef() { tContent.getvColumn().addElement(coldef);} //字段类型
+		| tc = GetTableConstraint() { tContent.getvConstraint().addElement(tc);}) //字段限制条件
+		)*
+   ")"
+   < EOL>
+   {
+     return tContent;
+    }
+}
+/*
+select
+from students,sc
+where
+
+笛卡尔积先合并成一个临时表 再用where筛选
+合并排序 内存不够大问题 
+*/

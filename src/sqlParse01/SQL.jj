@@ -1,0 +1,29 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */options{  static = false;  //鏄惁涓洪潤鎬佽皟鐢�}PARSER_BEGIN(SQL)    //鐢ㄤ簬鏍囪涓荤▼搴忔锛屾敞鎰廠QL涓庢枃浠跺悕涓�鑷�
+					 //涓荤▼搴忔涓殑浠ｇ爜閲囩敤java鏍煎紡锛屼細鍘熷皝涓嶅姩鐨勬嫹璐濊嚦SQL.java涓�package sqlParse01;
+
+public class SQL{  public static void main(String args []) throws ParseException	//鍑芥暟鍏ュ彛  {    SQL parser = new SQL(System.in);		//浠庢帶鍒跺彴杈撳叆瀛楃涓�
+    int j=0;
+    try
+    { 
+    	parser.judge();
+    	j=1;
+    }
+    catch (Exception e)
+      {
+//        System.out.println(e.getMessage());
+      }
+
+	 if(0==j)
+	 {		System.out.println("fail!");
+ 	 }
+ 	 else
+ 	 {		System.out.println("success!");	
+ 	 }  }}PARSER_END(SQL) //涓荤▼搴忔缁撴潫SKIP :			//闇�瑕佽烦杩囩殑瀛楃锛岃繖閲屼富瑕佹槸璺宠繃绌烘牸涓庢崲琛岀绛�{  " "| "\r"| "\t"| "\n"}TOKEN : //鏍囪瘑绗�{  < ACH : "a" >| < BCH : "b" >
+| < EOL : ";" >}
+void judge() :
+{
+ }
+{  (<ACH><BCH>)* <EOL> 
+}

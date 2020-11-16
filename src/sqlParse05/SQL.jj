@@ -1,0 +1,109 @@
+/**10.25  sgae int not null primarykey;
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */options{  static = false;}PARSER_BEGIN(SQL)package sqlParse05;
+import java.util.Vector;
+import staticContent.*;
+import dataBase.*;
+public class SQL{
+  public static void main(String args []) throws ParseException  {
+        SQL parser = new SQL(System.in);		//从控制台输入字符串
+    int j=0;
+    ColumnDef coldef = new ColumnDef();
+    try
+    {
+     
+    	coldef = parser.getColDef();
+    	System.out.println(coldef.getDescribe());
+    	j=1;
+    }
+    catch (Exception e)
+      {
+        System.out.println(e.getMessage());
+      }
+
+  }}PARSER_END(SQL)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN : /* OPERATORS */{  < PLUS : "+" >| < MINUS : "-" >| < MULTIPLY : "*" >| < DIVIDE : "/" >}
+TOKEN: //数据类型
+{
+  < INT : "int">
+| < FLOAT: "float" >
+| < STRING : "string">
+| < BOOL : "bool">
+}
+
+TOKEN: //标识符
+{
+	< UNIQUE :"unique">
+| < NOTNULL : "not null">
+| < PRIMARYKEY : "primary key">   
+// primary key (sage,sno)
+// foreign key (sno) references 被引用表表名[标识符](被引用表字段名[标识符]) on delete (setnull | noaction | cascade)
+// check
+// create table  标识符 (字段定义或者是约束定义)
+| < SQLDEFAULT : "default">
+| < FOREIGNKEY: "foreign key">
+| < REFERENCE: "reference">
+| < ON : "on">
+| < DELETE : "delete">
+| < >
+
+}
+
+TOKEN :{
+ < ICONSTANT : (< DIGIT >)+ >						 //整数
+| < FCONSTANT : (< DIGIT >)+ "." (< DIGIT >)* >		 //小数
+| < IDENTIFIER :
+    < LETTER >
+    (
+      < LETTER >
+    | < DIGIT >
+    )* >
+| < SCONSTANT : "'" ([ "a"-"z", "\\", "%", "_" ])* "'" >	 //字符串
+| < #LETTER : [ "a"-"z", "A"-"Z", "_" ] >
+| < #DIGIT : [ "0"-"9" ] >
+| < EOL :";" >}
+
+ColumnDef getColDef():
+{
+	ColumnDef coldef = new ColumnDef();
+	Token t;
+	int i;
+//	Expression exp = new Expression();
+ }
+{
+	t = < IDENTIFIER > { coldef.setColName(t.image);}
+	i = GetDataType() { coldef.setColType(i);}
+	(
+		[< UNIQUE> { coldef.setUnique(true);} ]
+		[< NOTNULL> { coldef.setNotNull(true);}]
+		[< PRIMARYKEY> { coldef.setPrimaryKey(true);}]
+		
+		//[< SQLDEFAULT> exp = ParsePartExpression() { coldef.setDefaultExp(exp);}]
+	)
+	< EOL >
+	{
+	  return coldef;
+	}
+}
+
+int GetDataType():
+{
+  int i;
+  }
+{
+  (	  < INT > { i = DataType.INT;}
+	|< FLOAT> { i = DataType.FLOAT;}
+	|< STRING >{ i = DataType.STRING;}
+	| < BOOL >{ i = DataType.BOOL;}
+)
+  {
+	return i;
+  }
+ }
+
+ Expression ParsePartExpression():
+ {
+ }
+ {
+
+ }
+ 

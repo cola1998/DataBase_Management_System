@@ -1,0 +1,6 @@
+CLEAR_CONSOLE=false
+JJ_NATURE=true
+RUNTIME_JJJAR=F\:/eclipse/eclipse/eclipse-jee-oxygen-R-win32-x86_64/eclipse-jee-oxygen-R-win32-x86_64/eclipse/plugins/sf.eclipse.javacc_1.5.33/jars/javacc-5.0.jar
+RUNTIME_JTBJAR=F\:/eclipse/eclipse/eclipse-jee-oxygen-R-win32-x86_64/eclipse-jee-oxygen-R-win32-x86_64/eclipse/plugins/sf.eclipse.javacc_1.5.33/jars/jtb-1.4.11.jar
+SUPPRESS_WARNINGS=false
+eclipse.preferences.version=1

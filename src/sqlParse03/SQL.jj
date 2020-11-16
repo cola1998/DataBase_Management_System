@@ -1,0 +1,181 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  static = false;  //是否为静态调用
+}
+
+PARSER_BEGIN(SQL)    //用于标记主程序段，注意SQL与文件名一致
+					 //主程序段中的代码采用java格式，会原封不动的拷贝至SQL.java中
+package sqlParse03;
+import java.util.Vector;
+import java.util.Stack;
+
+public class SQL
+{
+  public static void main(String args []) throws ParseException	//函数入口
+  {
+    SQL parser = new SQL(System.in);		//从控制台输入字符串
+    int j=0;
+    Vector v=new Vector();
+    try
+    { 
+    	v = parser.judge();
+    	System.out.println(v);
+    	j=1;
+    }
+    catch (Exception e)
+      {
+//        System.out.println(e.getMessage());
+      }
+
+	 if(0==j)
+	 {
+		System.out.println("匹配失败!"+v);
+ 	 }
+ 	 else
+ 	 {
+		System.out.println("匹配成功!"+v);
+		try
+		{ 
+			System.out.println(calSimpleExp(v));
+		}
+		catch (Exception e)
+      	{
+        	System.out.println(e.getMessage());
+      	}
+ 	 }
+  }
+
+ public static int calSimpleExp(Vector v) throws Exception {
+		if (v.size() == 0)
+			throw new Exception("无法计算");
+		Stack opstack = new Stack();// 操作符栈
+		Stack odstack = new Stack();// 操作数栈
+		Object o;
+		String opstr, opstacktopstr;
+		int od1, od2;
+		for (int i = 0; i < v.size(); i++) {
+			o = v.get(i);
+			if (o instanceof Integer)
+				odstack.push(o);// 操作数直接压栈
+			else {
+			  //其他需要进行判断
+			  //1、操作符栈为空时直接压入栈
+				if (0 == opstack.size()) {
+					opstack.add(o);
+					continue;
+				}
+				opstacktopstr = opstack.peek().toString();  //peek() 查看此堆栈的顶部元素，但是不删除
+				//System.out.println("栈顶操作符:"+opstacktopstr);
+				opstr = o.toString();
+				//System.out.println("当前操作符:"+opstr);
+
+				//2、比较栈顶和当前操作符的优先级
+				if (getOpPrecedence(opstr) > getOpPrecedence(opstacktopstr)) {
+					opstack.push(opstr);
+					continue;
+				}
+
+				//3、循环比较 直至当前操作符小于栈顶操作符
+				while (true) {
+					if (0 == opstack.size()) {
+						opstack.push(opstr);
+						break;
+					}
+					opstacktopstr = opstack.peek().toString();
+					if (getOpPrecedence(opstr) > getOpPrecedence(opstacktopstr)) {
+						opstack.push(opstr);
+						break;
+					}
+					
+					//弹出两个操作数 进行计算后压入操作数栈中
+					od2 = (int) odstack.pop();
+					od1 = (int) odstack.pop();
+					opstacktopstr = opstack.pop().toString();
+					odstack.push(calOd(od1, od2, opstacktopstr));
+				}
+			}
+		}
+		while(0<opstack.size())
+		{
+			od2 = (int) odstack.pop();
+			od1 = (int) odstack.pop();
+			opstacktopstr = opstack.pop().toString();
+			odstack.push(calOd(od1, od2, opstacktopstr));
+		}
+		return (int)odstack.peek();
+	}
+
+	public static int calOd(int od1,int od2,String opstackopstr) {
+	  if (0 == opstackopstr.compareTo("+"))
+	  	return od1+od2;
+	  if (0 == opstackopstr.compareTo("-"))
+	  	return od1-od2;
+	  if (0 == opstackopstr.compareTo("*"))
+	  	return od1*od2;
+	  if (0 == opstackopstr.compareTo("/"))
+	  	return od1/od2;
+	  return 0;
+	  }
+
+	public static int getOpPrecedence(String opstr) {
+	  //获取操作符的优先级
+		if (0 == opstr.compareTo("+"))
+			return 1;
+		if (0 == opstr.compareTo("-"))
+			return 1;
+		if (0 == opstr.compareTo("*"))
+			return 2;
+		if (0 == opstr.compareTo("/"))
+			return 2;
+		return 0;
+	}
+}
+
+
+PARSER_END(SQL) //主程序段结束
+
+SKIP :			//需要跳过的字符，这里主要是跳过空格与换行符等
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN : /* OPERATORS */
+{
+  < ADD : "+" >
+| < MINUS : "-" >
+| < MULTIPLY : "*" >
+| < DIVIDE : "/" >
+}
+TOKEN : 
+{
+   < ICONSTANT : (< DIGIT >)+ >						 //整数
+| < #DIGIT : [ "0"-"9" ] >
+| < EOL :";" >
+}
+
+Vector judge():
+{
+  Vector v=new Vector();
+  Token t;
+}
+{
+  //Token类中的image属性则表示匹配到的token的值
+  t = <ICONSTANT> { v.addElement(Integer.parseInt(t.image)); }
+  (
+    (<ADD> { v.addElement("+"); }
+    |<MINUS> { v.addElement("-"); }
+    |<MULTIPLY> { v.addElement("*"); }
+    |<DIVIDE> { v.addElement("/"); })
+    t = <ICONSTANT> { v.addElement(Integer.parseInt(t.image)); }
+  )*
+  <EOL>
+  {
+    return v;
+  }
+}
